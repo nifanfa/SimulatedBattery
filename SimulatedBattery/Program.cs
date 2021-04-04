@@ -11,13 +11,27 @@ namespace SimulatedBattery
             try
             {
                 InitWDTF();
-                EnableBattery();
-                for(; ; ) 
+                for (; ; )
                 {
-                    Console.Write("Set Percentage:");
-                    int i = Convert.ToInt32(Console.ReadLine());
-                    SetBatteryPercentage(i);
-                    Console.WriteLine($"Battery Percentage:{i}");
+                    string s = Console.ReadLine();
+                    switch (s)
+                    {
+                        case "DC":
+                            SetBatteryToDC();
+                            break;
+                        case "AC":
+                            SetBatteryToAC();
+                            break;
+                        case "Enable":
+                            EnableBattery();
+                            break;
+                        case "Disable":
+                            DisableBattery();
+                            break;
+                        default:
+                            SetBatteryPercentage(Convert.ToInt32(s));
+                            break;
+                    }
                 }
             }
             catch (Exception E)
@@ -34,16 +48,31 @@ namespace SimulatedBattery
             SimulatedBatterySystemSystemAction = WDTF.SystemDepot.ThisSystem.GetInterface("SimulatedBatterySystem");
         }
 
-        private static void EnableBattery() 
+        private static void EnableBattery()
         {
             SimulatedBatterySystemSystemAction.DisableRealBatteries();
             SimulatedBatterySystemSystemAction.EnableSimulatedBattery();
-            //hello
         }
 
-        private static void SetBatteryPercentage(int Value) 
+        private static void DisableBattery()
+        {
+            SimulatedBatterySystemSystemAction.EnableRealBatteries();
+            SimulatedBatterySystemSystemAction.DisableSimulatedBattery();
+        }
+
+        private static void SetBatteryPercentage(int Value)
         {
             SimulatedBatterySystemSystemAction.SetSimulatedBatteryChargePercentage(Value);
+        }
+
+        private static void SetBatteryToDC()
+        {
+            SimulatedBatterySystemSystemAction.SetSimulatedBatteryToDC();
+        }
+
+        private static void SetBatteryToAC()
+        {
+            SimulatedBatterySystemSystemAction.SetSimulatedBatteryToAC();
         }
     }
 }
