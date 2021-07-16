@@ -16,11 +16,9 @@ namespace SimulatedBattery
 
         static void Main(string[] args)
         {
-            Console.ForegroundColor = ConsoleColor.White;
-
             if (!IsWDTFInstalled) 
             {
-                Console.WriteLine("WDTF Is Not Installed");
+                Console.WriteLine("Installing WDTF");
 
                 SetInstaller(Mode.Remove);
                 SetInstaller(Mode.Create);
@@ -44,6 +42,7 @@ namespace SimulatedBattery
 
             InitWDTF();
 
+            ConsoleColor DefaultColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Commands:"); 
             Console.WriteLine("Enable: Enable Simulated Battery"); 
@@ -51,7 +50,7 @@ namespace SimulatedBattery
             Console.WriteLine("AC: AC Mode"); 
             Console.WriteLine("DC: DC Mode");
             Console.WriteLine("Input Any Number To Set Battery Percentage");
-            Console.ForegroundColor = ConsoleColor.White;
+            Console.ForegroundColor = DefaultColor;
 
             for (; ; )
             {
