@@ -35,6 +35,8 @@ namespace SimulatedBattery
         }
         private static dynamic SimulatedBatterySystemSystemAction;
 
+        private static string PORT = "COM4";
+
         static unsafe void Main(string[] args)
         {
             INIT_IO();
@@ -78,7 +80,7 @@ namespace SimulatedBattery
 
         private static unsafe void INIT_IO()
         {
-            SerialPort serialPort = new SerialPort("COM4", 9600);
+            SerialPort serialPort = new SerialPort(PORT, 9600);
             serialPort.Open();
             serialPort.DataReceived += (s, e) =>
             {
