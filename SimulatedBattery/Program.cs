@@ -2,21 +2,73 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
+using System.IO.Ports;
+using System.Timers;
 
 namespace SimulatedBattery
 {
     class Program
     {
-        private static bool IsWDTFInstalled 
+        public class Info
+        {
+            public float Voltage = 0;
+            public float Current = 0;
+            public float Power = 0;
+            public float Electricity = 0;
+            public float PowerFactor = 0;
+            public float C02 = 0;
+            public float Temperature = 0;
+            public float Frequency = 0;
+        }
+
+        static Info BatteryInfo = new Info();
+
+        static int MaxVoltage = 300;
+        static int MinVoltage = 100;
+        static int BatteryPercentage = 100;
+
+        static byte[] Req = new byte[] { 0x01, 0x03, 0x00, 0x48, 0x00, 0x08, 0xC4, 0x1A };
+
+        private static bool IsWDTFInstalled
         {
             get { return Type.GetTypeFromProgID("WDTF2.WDTF") != null; }
         }
         private static dynamic SimulatedBatterySystemSystemAction;
 
-        static void Main(string[] args)
+        static unsafe void Main(string[] args)
         {
-            if (!IsWDTFInstalled) 
+            // Hardware
+            SerialPort serialPort = new SerialPort("COM4", 9600);
+            serialPort.Open();
+            serialPort.DataReceived += (s, e) =>
+            {
+                byte[] buffer = new byte[64];
+                serialPort.Read(buffer, 0, buffer.Length);
+
+                byte[] data = new byte[32];
+                for (int i = 0; i < data.Length; i++) 
+                {
+                    //               Header Size
+                    data[i] = buffer[i + 3];
+                }
+
+                ReadData(data);
+
+                float M = MaxVoltage - MinVoltage;
+                float C = BatteryInfo.Voltage - MinVoltage;
+                BatteryPercentage = (int)((C / M) * 100);
+                Console.WriteLine("BatteryPercentage:" + BatteryPercentage);
+            };
+
+            Timer timer = new Timer(1000);
+            timer.Elapsed += (s, e) =>
+            {
+                serialPort.Write(Req, 0, Req.Length);
+            };
+            timer.Start();
+            //
+
+            if (!IsWDTFInstalled)
             {
                 Console.WriteLine("Installing WDTF");
 
@@ -25,10 +77,10 @@ namespace SimulatedBattery
 
                 Process process = Process.Start("msiexec", $"/i \"{MSIPath}\" /quiet");
 
-                while (!process.HasExited) 
+                while (!process.HasExited)
                 {
                 }
-                if (!IsWDTFInstalled) 
+                if (!IsWDTFInstalled)
                 {
                     Console.WriteLine("Faild To Install");
                     Console.ReadKey();
@@ -44,10 +96,10 @@ namespace SimulatedBattery
 
             ConsoleColor DefaultColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Commands:"); 
-            Console.WriteLine("Enable: Enable Simulated Battery"); 
-            Console.WriteLine("Disable: Disable Simulated Battery"); 
-            Console.WriteLine("AC: AC Mode"); 
+            Console.WriteLine("Commands:");
+            Console.WriteLine("Enable: Enable Simulated Battery");
+            Console.WriteLine("Disable: Disable Simulated Battery");
+            Console.WriteLine("AC: AC Mode");
             Console.WriteLine("DC: DC Mode");
             Console.WriteLine("Input Any Number To Set Battery Percentage");
             Console.ForegroundColor = DefaultColor;
@@ -76,7 +128,28 @@ namespace SimulatedBattery
             }
         }
 
-        enum Mode 
+        private static unsafe void ReadData(byte[] data)
+        {
+            BatteryInfo.Voltage = (data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3]) * 0.0001f;
+            BatteryInfo.Current = (data[4] << 24 | data[5] << 16 | data[6] << 8 | data[7]) * 0.0001f;
+            BatteryInfo.Power = (data[8] << 24 | data[9] << 16 | data[10] << 8 | data[11]) * 0.0001f;
+            BatteryInfo.Electricity = (data[12] << 24 | data[13] << 16 | data[14] << 8 | data[15]) * 0.0001f;
+            BatteryInfo.PowerFactor = (data[16] << 24 | data[17] << 16 | data[18] << 8 | data[19]) * 0.001f;
+            BatteryInfo.C02 = (data[20] << 24 | data[21] << 16 | data[22] << 8 | data[23]) * 0.0001f;
+            BatteryInfo.Temperature = (data[24] << 24 | data[25] << 16 | data[26] << 8 | data[27]) * 0.01f;
+            BatteryInfo.Frequency = (data[28] << 24 | data[29] << 16 | data[30] << 8 | data[31]) * 0.01f;
+
+            Console.WriteLine("Voltage:" + BatteryInfo.Voltage + "V");
+            Console.WriteLine("Current:" + BatteryInfo.Current + "A");
+            Console.WriteLine("Power:" + BatteryInfo.Power + "W");
+            Console.WriteLine("Electricity:" + BatteryInfo.Electricity + "KWh");
+            Console.WriteLine("PowerFactor:" + BatteryInfo.PowerFactor);
+            Console.WriteLine("C02:" + BatteryInfo.C02 + "Kg");
+            Console.WriteLine("Temperature:" + BatteryInfo.Temperature + "℃");
+            Console.WriteLine("Frequency:" + BatteryInfo.Frequency + "Hz");
+        }
+
+        enum Mode
         {
             Create,
             Remove
@@ -85,9 +158,9 @@ namespace SimulatedBattery
         private static string MSIPath = Path.Combine(Path.GetTempPath(), "Windows Driver Testing Framework (WDTF) Runtime Libraries-x64_en-us.msi");
         private static string CabPath = Path.Combine(Path.GetTempPath(), "52909056ae20065680e3c9283d5a4a21.cab");
 
-        private static void SetInstaller(Mode mode) 
+        private static void SetInstaller(Mode mode)
         {
-            switch (mode) 
+            switch (mode)
             {
                 case Mode.Create:
                     File.WriteAllBytes(MSIPath, Resources.MSI);
