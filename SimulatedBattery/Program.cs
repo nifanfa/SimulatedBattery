@@ -37,10 +37,10 @@ namespace SimulatedBattery
 
         static unsafe void Main(string[] args)
         {
-            InitIO();
+            INIT_IO();
 
-            InstallWDTF();
-            InitWDTF();
+            INSTALL_WDTF();
+            INIT_WDTF();
 
             ConsoleColor DefaultColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -76,7 +76,7 @@ namespace SimulatedBattery
             }
         }
 
-        private static unsafe void InitIO()
+        private static unsafe void INIT_IO()
         {
             SerialPort serialPort = new SerialPort("COM4", 9600);
             serialPort.Open();
@@ -92,11 +92,13 @@ namespace SimulatedBattery
                     data[i] = buffer[i + 3];
                 }
 
-                ReadData(data);
+                READ_DATA(data);
 
                 float M = MaxVoltage - MinVoltage;
                 float C = BatteryInfo.Voltage - MinVoltage;
                 BatteryPercentage = (int)((C / M) * 100);
+                SetBatteryPercentage(BatteryPercentage);
+
                 Console.WriteLine("BatteryPercentage:" + BatteryPercentage);
             };
 
@@ -108,7 +110,7 @@ namespace SimulatedBattery
             timer.Start();
         }
 
-        private static void InstallWDTF()
+        private static void INSTALL_WDTF()
         {
             if (!IsWDTFInstalled)
             {
@@ -135,7 +137,7 @@ namespace SimulatedBattery
             }
         }
 
-        private static unsafe void ReadData(byte[] data)
+        private static unsafe void READ_DATA(byte[] data)
         {
             BatteryInfo.Voltage = (data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3]) * 0.0001f;
             BatteryInfo.Current = (data[4] << 24 | data[5] << 16 | data[6] << 8 | data[7]) * 0.0001f;
@@ -186,7 +188,7 @@ namespace SimulatedBattery
             }
         }
 
-        private static void InitWDTF()
+        private static void INIT_WDTF()
         {
             Type WDTFType = Type.GetTypeFromProgID("WDTF2.WDTF");
             dynamic WDTF = Activator.CreateInstance(WDTFType);
