@@ -37,61 +37,9 @@ namespace SimulatedBattery
 
         static unsafe void Main(string[] args)
         {
-            // Hardware
-            SerialPort serialPort = new SerialPort("COM4", 9600);
-            serialPort.Open();
-            serialPort.DataReceived += (s, e) =>
-            {
-                byte[] buffer = new byte[64];
-                serialPort.Read(buffer, 0, buffer.Length);
+            InitIO();
 
-                byte[] data = new byte[32];
-                for (int i = 0; i < data.Length; i++) 
-                {
-                    //               Header Size
-                    data[i] = buffer[i + 3];
-                }
-
-                ReadData(data);
-
-                float M = MaxVoltage - MinVoltage;
-                float C = BatteryInfo.Voltage - MinVoltage;
-                BatteryPercentage = (int)((C / M) * 100);
-                Console.WriteLine("BatteryPercentage:" + BatteryPercentage);
-            };
-
-            Timer timer = new Timer(1000);
-            timer.Elapsed += (s, e) =>
-            {
-                serialPort.Write(Req, 0, Req.Length);
-            };
-            timer.Start();
-            //
-
-            if (!IsWDTFInstalled)
-            {
-                Console.WriteLine("Installing WDTF");
-
-                SetInstaller(Mode.Remove);
-                SetInstaller(Mode.Create);
-
-                Process process = Process.Start("msiexec", $"/i \"{MSIPath}\" /quiet");
-
-                while (!process.HasExited)
-                {
-                }
-                if (!IsWDTFInstalled)
-                {
-                    Console.WriteLine("Faild To Install");
-                    Console.ReadKey();
-                    return;
-                }
-                else
-                {
-                    Console.WriteLine("WDTF Installed");
-                }
-            }
-
+            InstallWDTF();
             InitWDTF();
 
             ConsoleColor DefaultColor = Console.ForegroundColor;
@@ -124,6 +72,65 @@ namespace SimulatedBattery
                     default:
                         SetBatteryPercentage(Convert.ToInt32(s));
                         break;
+                }
+            }
+        }
+
+        private static unsafe void InitIO()
+        {
+            SerialPort serialPort = new SerialPort("COM4", 9600);
+            serialPort.Open();
+            serialPort.DataReceived += (s, e) =>
+            {
+                byte[] buffer = new byte[64];
+                serialPort.Read(buffer, 0, buffer.Length);
+
+                byte[] data = new byte[32];
+                for (int i = 0; i < data.Length; i++)
+                {
+                    //               Header Size
+                    data[i] = buffer[i + 3];
+                }
+
+                ReadData(data);
+
+                float M = MaxVoltage - MinVoltage;
+                float C = BatteryInfo.Voltage - MinVoltage;
+                BatteryPercentage = (int)((C / M) * 100);
+                Console.WriteLine("BatteryPercentage:" + BatteryPercentage);
+            };
+
+            Timer timer = new Timer(1000);
+            timer.Elapsed += (s, e) =>
+            {
+                serialPort.Write(Req, 0, Req.Length);
+            };
+            timer.Start();
+        }
+
+        private static void InstallWDTF()
+        {
+            if (!IsWDTFInstalled)
+            {
+                Console.WriteLine("Installing WDTF");
+
+                SetInstaller(Mode.Remove);
+                SetInstaller(Mode.Create);
+
+                Process process = Process.Start("msiexec", $"/i \"{MSIPath}\" /quiet");
+
+                while (!process.HasExited)
+                {
+                }
+                if (!IsWDTFInstalled)
+                {
+                    Console.WriteLine("Faild To Install");
+                    Console.ReadKey();
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("WDTF Installed");
                 }
             }
         }
