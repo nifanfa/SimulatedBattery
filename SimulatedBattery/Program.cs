@@ -20,14 +20,15 @@ namespace SimulatedBattery
             public float Temperature = 0;
             public float Frequency = 0;
         }
+        static byte[] Req = new byte[] { 0x01, 0x03, 0x00, 0x48, 0x00, 0x08, 0xC4, 0x1A };
 
         static Info BatteryInfo = new Info();
 
         static int MaxVoltage = 300;
         static int MinVoltage = 100;
-        static int BatteryPercentage = 100;
 
-        static byte[] Req = new byte[] { 0x01, 0x03, 0x00, 0x48, 0x00, 0x08, 0xC4, 0x1A };
+        static int BatteryPercentage = 100;
+        static bool IsCharging = false;
 
         private static bool IsWDTFInstalled
         {
@@ -39,10 +40,14 @@ namespace SimulatedBattery
 
         static unsafe void Main(string[] args)
         {
+            //IsCharging = true;
+
             INIT_IO();
 
             INSTALL_WDTF();
             INIT_WDTF();
+
+            IF_CHARGE();
 
             ConsoleColor DefaultColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -78,6 +83,39 @@ namespace SimulatedBattery
             }
         }
 
+        private static void IF_CHARGE() 
+        {
+            Timer timer = new Timer(1000);
+            int Phase = 0;
+            timer.Elapsed += (sender, e) =>
+            {
+                if (IsCharging) 
+                {
+                    switch (Phase) 
+                    {
+                        case 0:
+                            SetBatteryPercentage(25);
+                            break;
+                        case 1:
+                            SetBatteryPercentage(50);
+                            break;
+                        case 2:
+                            SetBatteryPercentage(75);
+                            break;
+                        case 3:
+                            SetBatteryPercentage(100);
+                            break;
+                    }
+                    Phase++;
+                    if (Phase > 3) 
+                    {
+                        Phase = 0;
+                    }
+                }
+            };
+            timer.Start();
+        }
+
         private static unsafe void INIT_IO()
         {
             SerialPort serialPort = new SerialPort(PORT, 4800);
@@ -98,10 +136,14 @@ namespace SimulatedBattery
 
                 float M = MaxVoltage - MinVoltage;
                 float C = BatteryInfo.Voltage - MinVoltage;
-                BatteryPercentage = (int)((C / M) * 100);
-                SetBatteryPercentage(BatteryPercentage);
 
-                Console.WriteLine("BatteryPercentage:" + BatteryPercentage);
+                if (!IsCharging)
+                {
+                    BatteryPercentage = (int)((C / M) * 100);
+                    SetBatteryPercentage(BatteryPercentage);
+
+                    Console.WriteLine("BatteryPercentage:" + BatteryPercentage);
+                }
             };
 
             Timer timer = new Timer(1000);
