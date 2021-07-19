@@ -41,6 +41,7 @@ namespace SimulatedBattery
 
         static unsafe void Main(string[] args)
         {
+            //Test
             IsCharging = true;
 
             INIT_IO();
