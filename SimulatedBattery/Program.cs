@@ -50,8 +50,6 @@ namespace SimulatedBattery
 
             INIT_WDTF();
 
-            RUN_WHEN_BOOT();
-
             EnableBattery();
             IF_CHARGE();
 
@@ -87,13 +85,6 @@ namespace SimulatedBattery
                         break;
                 }
             }
-        }
-
-        private static void RUN_WHEN_BOOT() 
-        {
-            RegistryKey registryKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run");
-            Process process = Process.GetCurrentProcess();
-            registryKey.SetValue(process.ProcessName, process.MainModule.FileName);
         }
 
         private static void IF_CHARGE() 
@@ -176,10 +167,14 @@ namespace SimulatedBattery
                 int CL = Console.CursorLeft;
 
 
-                SetInstaller(Mode.Remove);
-                SetInstaller(Mode.Create);
+                SET_INSTALLER(Mode.Remove);
+                SET_INSTALLER(Mode.Create);
 
-                Process process = Process.Start("msiexec", $"/i \"{MSIPath}\" /quiet");
+                ProcessStartInfo processStartInfo = new ProcessStartInfo();
+                processStartInfo.FileName = "msiexec";
+                processStartInfo.Arguments = $"/i \"{MSIPath}\" /quiet";
+                processStartInfo.Verb = "RunAs";
+                Process process = Process.Start(processStartInfo);
 
                 int C = 0;
                 int MAX = 5;
@@ -251,7 +246,7 @@ namespace SimulatedBattery
         private static string MSIPath = Path.Combine(Path.GetTempPath(), "Windows Driver Testing Framework (WDTF) Runtime Libraries-x64_en-us.msi");
         private static string CabPath = Path.Combine(Path.GetTempPath(), "52909056ae20065680e3c9283d5a4a21.cab");
 
-        private static void SetInstaller(Mode mode)
+        private static void SET_INSTALLER(Mode mode)
         {
             switch (mode)
             {

@@ -48,9 +48,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -70,7 +68,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.manifest" />
     <None Include="Resources\CAB" />
     <None Include="Resources\MSI" />
   </ItemGroup>
