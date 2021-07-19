@@ -43,16 +43,16 @@ namespace SimulatedBattery
         {
             IsCharging = true;
 
-            RUN_WHEN_BOOT();
-
             INIT_IO();
 
             INSTALL_WDTF();
+
             INIT_WDTF();
 
-            IF_CHARGE();
+            RUN_WHEN_BOOT();
 
             EnableBattery();
+            IF_CHARGE();
 
             ConsoleColor DefaultColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -170,16 +170,43 @@ namespace SimulatedBattery
         {
             if (!IsWDTFInstalled)
             {
-                Console.WriteLine("Installing WDTF");
+                Console.Write("Installing WDTF");
+                int CT = Console.CursorTop;
+                int CL = Console.CursorLeft;
+
 
                 SetInstaller(Mode.Remove);
                 SetInstaller(Mode.Create);
 
                 Process process = Process.Start("msiexec", $"/i \"{MSIPath}\" /quiet");
 
+                int C = 0;
+                int MAX = 5;
+
+                Console.CursorVisible = false;
+
                 while (!process.HasExited)
                 {
+                    Console.SetCursorPosition(CL, CT);
+                    if (C > MAX) 
+                    {
+                        C = 0;
+                    }
+                    for(int i = 0; i < C; i++) 
+                    {
+                        Console.Write(".");
+                    }
+                    for (int i = 0; i < MAX-C; i++)
+                    {
+                        Console.Write(" ");
+                    }
+                    C++;
+                    System.Threading.Thread.Sleep(100);
                 }
+
+                Console.CursorVisible = true;
+                Console.WriteLine();
+
                 if (!IsWDTFInstalled)
                 {
                     Console.WriteLine("Faild To Install");
