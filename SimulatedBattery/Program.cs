@@ -1,3 +1,4 @@
+using Microsoft.Win32;
 using SimulatedBattery.Properties;
 using System;
 using System.Diagnostics;
@@ -40,7 +41,9 @@ namespace SimulatedBattery
 
         static unsafe void Main(string[] args)
         {
-            //IsCharging = true;
+            IsCharging = true;
+
+            RUN_WHEN_BOOT();
 
             INIT_IO();
 
@@ -48,6 +51,8 @@ namespace SimulatedBattery
             INIT_WDTF();
 
             IF_CHARGE();
+
+            EnableBattery();
 
             ConsoleColor DefaultColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -81,6 +86,13 @@ namespace SimulatedBattery
                         break;
                 }
             }
+        }
+
+        private static void RUN_WHEN_BOOT() 
+        {
+            RegistryKey registryKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run");
+            Process process = Process.GetCurrentProcess();
+            registryKey.SetValue(process.ProcessName, process.MainModule.FileName);
         }
 
         private static void IF_CHARGE() 
