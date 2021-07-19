@@ -50,6 +50,8 @@ namespace SimulatedBattery
 
             INIT_WDTF();
 
+            RUN_WHEN_BOOT();
+
             EnableBattery();
             IF_CHARGE();
 
@@ -85,6 +87,13 @@ namespace SimulatedBattery
                         break;
                 }
             }
+        }
+
+        private static void RUN_WHEN_BOOT() 
+        {
+            RegistryKey registryKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run");
+            Process process = Process.GetCurrentProcess();
+            registryKey.SetValue(process.ProcessName, process.MainModule.FileName);
         }
 
         private static void IF_CHARGE() 
