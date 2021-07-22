@@ -12,21 +12,18 @@ namespace SimulatedBattery
     {
         public class Info
         {
-            public float Voltage = 0;
-            public float Current = 0;
-            public float Power = 0;
-            public float Electricity = 0;
-            public float PowerFactor = 0;
-            public float C02 = 0;
-            public float Temperature = 0;
-            public float Frequency = 0;
+            public double Voltage = 0;
+            public double Current = 0;
+            public double Power = 0;
+            public double Electricity = 0;
+            public double PowerFactor = 0;
+            public double C02 = 0;
+            public double Temperature = 0;
+            public double Frequency = 0;
         }
         static byte[] Req = new byte[] { 0x01, 0x03, 0x00, 0x48, 0x00, 0x08, 0xC4, 0x1A };
 
         static Info BatteryInfo = new Info();
-
-        static int MaxVoltage = 300;
-        static int MinVoltage = 100;
 
         static int BatteryPercentage = 100;
         static bool IsCharging = false;
@@ -37,12 +34,16 @@ namespace SimulatedBattery
         }
         private static dynamic SimulatedBatterySystemSystemAction;
 
-        private static string PORT = "COM4";
+
+        //MODIFY HERE
+        private static string PORT = "COM3";
+        static double MaxVoltage = 12.6;
+        static double MinVoltage = 11.1;
 
         static unsafe void Main(string[] args)
         {
             //Test
-            IsCharging = true;
+            //IsCharging = true;
 
             INIT_IO();
 
@@ -55,37 +56,8 @@ namespace SimulatedBattery
             EnableBattery();
             IF_CHARGE();
 
-            ConsoleColor DefaultColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Commands:");
-            Console.WriteLine("Enable: Enable Simulated Battery");
-            Console.WriteLine("Disable: Disable Simulated Battery");
-            Console.WriteLine("AC: AC Mode");
-            Console.WriteLine("DC: DC Mode");
-            Console.WriteLine("Input Any Number To Set Battery Percentage");
-            Console.ForegroundColor = DefaultColor;
-
             for (; ; )
             {
-                string s = Console.ReadLine().ToUpper();
-                switch (s)
-                {
-                    case "DC":
-                        SetBatteryToDC();
-                        break;
-                    case "AC":
-                        SetBatteryToAC();
-                        break;
-                    case "ENABLE":
-                        EnableBattery();
-                        break;
-                    case "DISABLE":
-                        DisableBattery();
-                        break;
-                    default:
-                        SetBatteryPercentage(Convert.ToInt32(s));
-                        break;
-                }
             }
         }
 
@@ -135,8 +107,16 @@ namespace SimulatedBattery
             serialPort.Open();
             serialPort.DataReceived += (s, e) =>
             {
+                Console.Clear();
+                Console.SetCursorPosition(0, 0);
+
                 byte[] buffer = new byte[64];
-                serialPort.Read(buffer, 0, buffer.Length);
+                int len = serialPort.Read(buffer, 0, buffer.Length);
+                for(int i = 0; i < len; i++) 
+                {
+                    Console.Write(buffer[i].ToString("x2") + " ");
+                }
+                Console.WriteLine();
 
                 byte[] data = new byte[32];
                 for (int i = 0; i < data.Length; i++)
@@ -147,8 +127,8 @@ namespace SimulatedBattery
 
                 READ_DATA(data);
 
-                float M = MaxVoltage - MinVoltage;
-                float C = BatteryInfo.Voltage - MinVoltage;
+                double M = MaxVoltage - MinVoltage;
+                double C = BatteryInfo.Voltage - MinVoltage;
 
                 if (!IsCharging)
                 {
@@ -164,6 +144,7 @@ namespace SimulatedBattery
             {
                 serialPort.Write(Req, 0, Req.Length);
             };
+            System.Threading.Thread.Sleep(1000);
             timer.Start();
         }
 
@@ -227,14 +208,14 @@ namespace SimulatedBattery
 
         private static unsafe void READ_DATA(byte[] data)
         {
-            BatteryInfo.Voltage = (data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3]) * 0.0001f;
-            BatteryInfo.Current = (data[4] << 24 | data[5] << 16 | data[6] << 8 | data[7]) * 0.0001f;
-            BatteryInfo.Power = (data[8] << 24 | data[9] << 16 | data[10] << 8 | data[11]) * 0.0001f;
-            BatteryInfo.Electricity = (data[12] << 24 | data[13] << 16 | data[14] << 8 | data[15]) * 0.0001f;
-            BatteryInfo.PowerFactor = (data[16] << 24 | data[17] << 16 | data[18] << 8 | data[19]) * 0.001f;
-            BatteryInfo.C02 = (data[20] << 24 | data[21] << 16 | data[22] << 8 | data[23]) * 0.0001f;
-            BatteryInfo.Temperature = (data[24] << 24 | data[25] << 16 | data[26] << 8 | data[27]) * 0.01f;
-            BatteryInfo.Frequency = (data[28] << 24 | data[29] << 16 | data[30] << 8 | data[31]) * 0.01f;
+            BatteryInfo.Voltage = (data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3]) * 0.0001d;
+            BatteryInfo.Current = (data[4] << 24 | data[5] << 16 | data[6] << 8 | data[7]) * 0.0001d;
+            BatteryInfo.Power = (data[8] << 24 | data[9] << 16 | data[10] << 8 | data[11]) * 0.0001d;
+            BatteryInfo.Electricity = (data[12] << 24 | data[13] << 16 | data[14] << 8 | data[15]) * 0.0001d;
+            BatteryInfo.PowerFactor = (data[16] << 24 | data[17] << 16 | data[18] << 8 | data[19]) * 0.001d;
+            BatteryInfo.C02 = (data[20] << 24 | data[21] << 16 | data[22] << 8 | data[23]) * 0.0001d;
+            BatteryInfo.Temperature = (data[24] << 24 | data[25] << 16 | data[26] << 8 | data[27]) * 0.01d;
+            BatteryInfo.Frequency = (data[28] << 24 | data[29] << 16 | data[30] << 8 | data[31]) * 0.01d;
 
             Console.WriteLine("Voltage:" + BatteryInfo.Voltage + "V");
             Console.WriteLine("Current:" + BatteryInfo.Current + "A");
