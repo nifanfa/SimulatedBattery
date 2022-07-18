@@ -19,7 +19,7 @@ namespace SimulatedBattery.Properties {
     // 类通过类似于 ResGen 或 Visual Studio 的工具自动生成的。
     // 若要添加或移除成员，请编辑 .ResX 文件，然后重新运行 ResGen
     // (以 /str 作为命令选项)，或重新生成 VS 项目。
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -63,9 +63,9 @@ namespace SimulatedBattery.Properties {
         /// <summary>
         ///   查找 System.Byte[] 类型的本地化资源。
         /// </summary>
-        internal static byte[] CAB {
+        internal static byte[] cab {
             get {
-                object obj = ResourceManager.GetObject("CAB", resourceCulture);
+                object obj = ResourceManager.GetObject("cab", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -73,9 +73,9 @@ namespace SimulatedBattery.Properties {
         /// <summary>
         ///   查找 System.Byte[] 类型的本地化资源。
         /// </summary>
-        internal static byte[] MSI {
+        internal static byte[] msi {
             get {
-                object obj = ResourceManager.GetObject("MSI", resourceCulture);
+                object obj = ResourceManager.GetObject("msi", resourceCulture);
                 return ((byte[])(obj));
             }
         }
